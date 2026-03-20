@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>FÜDA AR Menu</title>
+<!-- Google Model Viewer — official WebAR, used by IKEA, McDonald's, Samsung -->
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --or:#FF6B2C;--yl:#FFD23F;--dk:#0A0A0A;--sf:rgba(10,8,6,0.96);
+  --bd:rgba(255,255,255,0.12);--mt:#888;--lt:#F5F5F0;
+  --FD:'Bebas Neue',cursive;--FB:'DM Sans',sans-serif;--FM:'Space Mono',monospace;
+  --sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)
+}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0804;color:var(--lt);font-family:var(--FB)}
+
+/* model-viewer fills entire screen */
+model-viewer{
+  width:100vw;height:100vh;
+  position:fixed;top:0;left:0;z-index:1;
+  background-color:#0a0804;
+  --progress-bar-color:var(--or);
+  --progress-bar-height:3px;
+}
+model-viewer::part(default-ar-button){display:none} /* hide default, use ours */
+
+/* TOP BAR */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:10;padding:calc(var(--st)+14px) 18px 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(0,0,0,.75) 0%,transparent 100%)}
+.tb-back{width:44px;height:44px;background:rgba(0,0,0,.6);border:1px solid var(--bd);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;text-decoration:none;backdrop-filter:blur(8px)}
+.tb-logo{font-family:var(--FD);font-size:28px;letter-spacing:4px}.tb-logo b{color:var(--or)}
+.tb-pill{background:rgba(0,0,0,.6);border:1px solid var(--bd);border-radius:100px;padding:8px 14px;font-family:var(--FM);font-size:9px;letter-spacing:2px;color:var(--or);backdrop-filter:blur(8px);display:flex;align-items:center;gap:6px}
+.tb-dot{width:6px;height:6px;background:var(--or);border-radius:50%;animation:dp 2s infinite}
+@keyframes dp{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* BIG AR BUTTON — centre of screen, shown when item selected */
+#ar-btn-wrap{position:fixed;bottom:calc(var(--sb)+138px);left:50%;transform:translateX(-50%);z-index:10;display:none;flex-direction:column;align-items:center;gap:10px}
+#ar-btn-wrap.show{display:flex}
+#ar-btn{background:var(--or);color:#fff;border:none;border-radius:100px;padding:18px 36px;font-family:var(--FD);font-size:22px;letter-spacing:3px;cursor:pointer;white-space:nowrap;box-shadow:0 0 40px rgba(255,107,44,.6),0 8px 32px rgba(0,0,0,.5);display:flex;align-items:center;gap:10px;animation:anim-ar-btn 2s ease-in-out infinite}
+@keyframes anim-ar-btn{0%,100%{box-shadow:0 0 40px rgba(255,107,44,.6),0 8px 32px rgba(0,0,0,.5)}50%{box-shadow:0 0 60px rgba(255,107,44,.9),0 8px 32px rgba(0,0,0,.5)}}
+#ar-btn:active{transform:scale(.96)}
+.ar-btn-hint{font-family:var(--FM);font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.5);text-transform:uppercase}
+
+/* FOOD CARD */
+#card{position:fixed;bottom:calc(var(--sb)+130px);left:12px;right:12px;z-index:10;background:var(--sf);border:1px solid rgba(255,107,44,.3);border-radius:24px;overflow:hidden;backdrop-filter:blur(24px);transform:translateY(130%);transition:transform .4s cubic-bezier(.32,.72,0,1);box-shadow:0 -8px 48px rgba(0,0,0,.8)}
+#card.show{transform:translateY(0)}
+.cp{height:155px;position:relative;overflow:hidden}.cp img{width:100%;height:100%;object-fit:cover}
+.cpf{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.05) 25%,rgba(10,8,6,1) 100%)}
+.cbadge{position:absolute;top:10px;left:12px;font-family:var(--FM);font-size:8px;letter-spacing:2px;color:var(--or);background:rgba(0,0,0,.8);border:1px solid rgba(255,107,44,.4);border-radius:100px;padding:4px 10px}
+.cicon{position:absolute;top:10px;right:14px;font-size:32px;filter:drop-shadow(0 2px 10px rgba(0,0,0,.9))}
+.cbody{padding:2px 16px 16px}
+.cname{font-family:var(--FD);font-size:28px;letter-spacing:1px;line-height:1;margin-bottom:2px}
+.csub{font-size:11px;color:var(--mt);margin-bottom:4px}
+.cdesc{font-size:12px;color:rgba(245,245,240,.5);line-height:1.5;margin-bottom:10px}
+.cstyles{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.csty{background:rgba(255,255,255,.06);border:1px solid var(--bd);border-radius:100px;padding:5px 12px;font-family:var(--FM);font-size:9px;letter-spacing:1px;color:var(--mt);cursor:pointer;text-transform:uppercase}
+.csty.on{background:var(--or);border-color:var(--or);color:#fff}
+.csizes{display:flex;gap:6px;margin-bottom:10px}
+.csize{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--bd);border-radius:10px;padding:8px 4px;font-family:var(--FM);font-size:9px;letter-spacing:1px;color:var(--mt);cursor:pointer;text-align:center}
+.csize.on{background:var(--or);border-color:var(--or);color:#fff}
+.cfoot{display:flex;align-items:center;gap:10px}
+.cprice{font-family:var(--FD);font-size:34px;color:var(--or);letter-spacing:1px;white-space:nowrap}
+.cdismiss{width:42px;height:42px;background:rgba(255,255,255,.07);border:1px solid var(--bd);border-radius:50%;color:var(--mt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.corder{background:var(--or);color:#fff;border:none;border-radius:12px;padding:14px 20px;font-family:var(--FD);font-size:20px;letter-spacing:2px;cursor:pointer;flex:1;box-shadow:0 4px 20px rgba(255,107,44,.35)}
+.corder:active{transform:scale(.97)}
+
+/* BOTTOM SELECTOR */
+#bottom{position:fixed;bottom:0;left:0;right:0;z-index:10;padding:0 0 calc(var(--sb)+12px);background:linear-gradient(0deg,rgba(0,0,0,.96) 65%,transparent 100%)}
+.bcats{display:flex;gap:6px;padding:10px 14px 0;overflow-x:auto;scrollbar-width:none}
+.bcats::-webkit-scrollbar{display:none}
+.bcat{flex-shrink:0;background:rgba(255,255,255,.07);border:1px solid var(--bd);border-radius:100px;padding:6px 14px;font-family:var(--FM);font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.4);cursor:pointer}
+.bcat.on{color:var(--lt);border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.12)}
+.blbl{font-family:var(--FM);font-size:9px;letter-spacing:3px;color:var(--mt);text-transform:uppercase;padding:7px 18px 6px;text-align:center}
+.bscroll{display:flex;gap:8px;padding:0 12px 2px;overflow-x:auto;scrollbar-width:none}
+.bscroll::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;background:rgba(8,6,4,.92);border:1px solid var(--bd);border-radius:14px;display:flex;align-items:center;overflow:hidden;cursor:pointer;width:175px}
+.chip.on{border-color:var(--or);box-shadow:0 0 18px rgba(255,107,44,.45)}
+.chip-img{width:58px;height:58px;object-fit:cover;flex-shrink:0}
+.chip-info{padding:6px 10px;flex:1;min-width:0}
+.chip-name{font-size:11px;font-weight:600;color:var(--lt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip-price{font-family:var(--FM);font-size:9px;color:rgba(255,255,255,.35);margin-top:2px}
+.chip.on .chip-price{color:rgba(255,107,44,.85)}
+
+/* NO GLB NOTICE */
+#no-glb-notice{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;background:rgba(10,8,6,.95);border:1px solid rgba(255,107,44,.25);border-radius:20px;padding:28px 24px;text-align:center;max-width:300px;width:88%;display:none}
+#no-glb-notice.show{display:block}
+.nglb-icon{font-size:44px;margin-bottom:10px}
+.nglb-title{font-family:var(--FD);font-size:26px;letter-spacing:2px;margin-bottom:6px}.nglb-title b{color:var(--or)}
+.nglb-desc{font-size:12px;color:var(--mt);line-height:1.6;margin-bottom:14px}
+.nglb-sites{display:flex;flex-direction:column;gap:7px}
+.nglb-site{background:rgba(255,107,44,.08);border:1px solid rgba(255,107,44,.25);border-radius:10px;padding:10px 14px;font-family:var(--FM);font-size:10px;letter-spacing:1px;color:var(--or);text-decoration:none;text-align:left;display:flex;justify-content:space-between;align-items:center}
+.nglb-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--mt);font-size:20px;cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;top:calc(var(--st)+80px);left:50%;transform:translateX(-50%) translateY(-10px);background:rgba(8,6,4,.96);border:1px solid var(--bd);border-radius:100px;padding:10px 22px;font-family:var(--FM);font-size:11px;color:var(--lt);z-index:20;white-space:nowrap;opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- THE MODEL VIEWER — Google's AR engine -->
+<model-viewer
+  id="mv"
+  alt="FÜDA food in AR"
+  ar
+  ar-modes="webxr scene-viewer quick-look"
+  ar-scale="fixed"
+  camera-controls
+  auto-rotate
+  auto-rotate-delay="1000"
+  rotation-per-second="25deg"
+  shadow-intensity="1.5"
+  shadow-softness="1"
+  exposure="1.0"
+  environment-image="neutral"
+  reveal="auto"
+  loading="eager"
+>
+  <!-- This button triggers real phone AR — WebXR on Android, Quick Look on iPhone -->
+  <button slot="ar-button" id="mv-ar-trigger" style="display:none"></button>
+</model-viewer>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <a href="index.html" class="tb-back">←</a>
+  <div class="tb-logo">F<b>Ü</b>DA</div>
+  <div class="tb-pill"><div class="tb-dot"></div><span id="stxt">3D VIEWER</span></div>
+</div>
+
+<!-- AR LAUNCH BUTTON -->
+<div id="ar-btn-wrap">
+  <button id="ar-btn" onclick="triggerAR()">
+    📷 VIEW ON YOUR TABLE
+  </button>
+  <div class="ar-btn-hint">TAP TO PLACE IN REAL WORLD</div>
+</div>
+
+<!-- FOOD INFO CARD -->
+<div id="card">
+  <div class="cp">
+    <img id="cimg" src="" alt="">
+    <div class="cpf"></div>
+    <div class="cbadge">📦 3D MODEL</div>
+    <div class="cicon" id="cicon">🥟</div>
+  </div>
+  <div class="cbody">
+    <div class="cname" id="cname">Chicken Momo</div>
+    <div class="csub" id="csub">6 pieces</div>
+    <div class="cdesc" id="cdesc"></div>
+    <div class="cstyles" id="cstyles"></div>
+    <div class="csizes" id="csizes" style="display:none"></div>
+    <div class="cfoot">
+      <div class="cprice" id="cprice">$12.90</div>
+      <button class="cdismiss" onclick="hideCard()">✕</button>
+      <button class="corder" onclick="orderNow()">ORDER NOW</button>
+    </div>
+  </div>
+</div>
+
+<!-- NO GLB NOTICE (shown when .glb not found) -->
+<div id="no-glb-notice" style="position:relative">
+  <button class="nglb-close" onclick="document.getElementById('no-glb-notice').classList.remove('show')">✕</button>
+  <div class="nglb-icon">📦</div>
+  <div class="nglb-title">ADD <b>3D MODEL</b></div>
+  <p class="nglb-desc">Upload your food photo to one of these free AI tools, download the .glb file, and drop it in your <code>images/</code> folder.</p>
+  <div class="nglb-sites">
+    <a class="nglb-site" href="https://meshy.ai" target="_blank">meshy.ai <span>→</span></a>
+    <a class="nglb-site" href="https://upsampler.com/free-image-to-3d-no-signup" target="_blank">upsampler.com (no login) <span>→</span></a>
+    <a class="nglb-site" href="https://trellis3d.co" target="_blank">trellis3d.co <span>→</span></a>
+  </div>
+</div>
+
+<!-- BOTTOM SELECTOR -->
+<div id="bottom">
+  <div class="bcats">
+    <div class="bcat on" onclick="setCat('momos',this)">🥟 DUMPLINGS</div>
+    <div class="bcat" onclick="setCat('kebabs',this)">🥙 KEBABS</div>
+    <div class="bcat" onclick="setCat('drinks',this)">🧋 DRINKS</div>
+  </div>
+  <div class="blbl">SWIPE TO CHOOSE DISH</div>
+  <div class="bscroll" id="bscroll"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="menu-data.js"></script>
+<script>
+var selCat = 'momos', selIdx = 0, selStyle = '', selSize = '';
+var mv = document.getElementById('mv');
+
+// ── GLB filename mapping
+// Name your files like: images/chicken-momo.glb, images/mixed-grill.glb etc.
+// If no .glb exists, shows the 3D viewer with a placeholder and the "get model" notice
+var GLB_MAP = {
+  // MOMOS
+  'chicken-momo-entree':  'images/chicken-momo.glb',
+  'paneer-momo-entree':   'images/paneer-momo.glb',
+  'buff-momo-entree':     'images/buff-momo.glb',
+  'vegan-momo-entree':    'images/vegan-momo.glb',
+  'paneer-momo-platter':  'images/momo-platter.glb',
+  'chocolate-momo':       'images/choco-momo.glb',
+  'samosa':               'images/samosa.glb',
+  'momo-bubble-meal':     'images/chicken-momo.glb',
+  // KEBABS
+  'hummus':               'images/hummus.glb',
+  'tzatziki':             'images/tzatziki.glb',
+  'carrot-dip':           'images/carrot-dip.glb',
+  'trio-dip':             'images/trio-dip.glb',
+  'chicken-spring-roll':  'images/spring-roll.glb',
+  'lamb-spring-roll':     'images/spring-roll.glb',
+  'mediterranean-salad':  'images/salad.glb',
+  'snack-pack':           'images/snack-pack.glb',
+  'chicken-shish-wrap':   'images/chicken-wrap.glb',
+  'kofta-wrap':           'images/kofta-wrap.glb',
+  'falafel-haloumi-wrap': 'images/falafel-wrap.glb',
+  'chicken-shish-kebab':  'images/chicken-kebab.glb',
+  'lamb-shish-kebab':     'images/lamb-kebab.glb',
+  'kofta-main':           'images/kofta.glb',
+  'iskender-kebab':       'images/iskender.glb',
+  'lamb-meatball-rice':   'images/lamb-meatball.glb',
+  'mixed-grill-kebab':    'images/mixed-grill.glb',
+  'dinner-for-two':       'images/mixed-grill.glb',
+  'mixed-grill-bubble':   'images/mixed-grill.glb',
+  'wrap-bubble-meal':     'images/chicken-wrap.glb',
+  'family-feast':         'images/mixed-grill.glb',
+  // DRINKS
+  'salted-caramel-boba':  'images/boba-coffee.glb',
+  'mocha-jelly-boba':     'images/boba-coffee.glb',
+  'tiramisu-boba':        'images/boba-coffee.glb',
+  'spanish-latte-boba':   'images/boba-coffee.glb',
+  'vietnamese-boba':      'images/boba-coffee.glb',
+  'lychee-rose-oolong':   'images/bubble-tea.glb',
+  'mango-pomelo-sago':    'images/bubble-tea.glb',
+  'passionfruit-pineapple':'images/bubble-tea.glb',
+  'yuzu-green-fizz':      'images/bubble-tea.glb',
+  'espresso':             'images/coffee-cup.glb',
+  'long-black':           'images/coffee-cup.glb',
+  'latte':                'images/coffee-cup.glb',
+  'cappucino':            'images/coffee-cup.glb',
+  'flat-white':           'images/coffee-cup.glb',
+  'macchiato':            'images/coffee-cup.glb',
+  'mocha':                'images/coffee-cup.glb',
+  'hot-chocolate':        'images/coffee-cup.glb',
+  'piccolo':              'images/coffee-cup.glb',
+  'ice-latte':            'images/coffee-cup.glb',
+  'ice-long-black':       'images/coffee-cup.glb',
+  'coca-cola':            'images/can.glb',
+  'sprite':               'images/can.glb',
+  'fanta':                'images/can.glb',
+  'lemonade':             'images/can.glb',
+};
+
+// ── LOAD MODEL
+function loadModel(item) {
+  // First check if Meshy Generator has already created a model
+  var generatedModels = JSON.parse(localStorage.getItem('fuda_3d_models') || '{}');
+  var groupId = GLB_MAP[item.id]; // e.g. 'chicken-momo'
+  
+  var glbUrl = null;
+  if (groupId && generatedModels[groupId]) {
+    // Use Meshy CDN URL directly — photorealistic model!
+    glbUrl = generatedModels[groupId];
+    document.getElementById('stxt').textContent = 'AI MODEL ✓';
+  } else {
+    // Fall back to local .glb file if manually added
+    glbUrl = groupId ? 'images/' + groupId + '.glb' : 'images/default-food.glb';
+  }
+
+  mv.src = glbUrl;
+
+  mv.addEventListener('error', function onErr() {
+    mv.removeEventListener('error', onErr);
+    // No GLB file found — show notice
+    document.getElementById('no-glb-notice').classList.add('show');
+    document.getElementById('stxt').textContent = 'NO 3D MODEL';
+    document.getElementById('ar-btn-wrap').classList.remove('show');
+    toast('⚠️ No .glb file yet — see instructions');
+  }, {once: true});
+
+  mv.addEventListener('load', function onLoad() {
+    mv.removeEventListener('load', onLoad);
+    document.getElementById('no-glb-notice').classList.remove('show');
+    document.getElementById('ar-btn-wrap').classList.add('show');
+    document.getElementById('stxt').textContent = '3D READY';
+    toast('✅ 3D model loaded — tap AR to place on table!');
+  }, {once: true});
+}
+
+// ── TRIGGER AR (calls model-viewer's built-in AR)
+function triggerAR() {
+  var arBtn = document.getElementById('mv-ar-trigger');
+  if (arBtn) {
+    arBtn.click(); // triggers WebXR on Android / Quick Look on iPhone
+    document.getElementById('stxt').textContent = 'AR LIVE ✓';
+    toast('📷 AR launched — point at flat surface!');
+  }
+}
+
+// ── INFO CARD
+function showCard(item, catObj) {
+  document.getElementById('cimg').src  = item.img;
+  document.getElementById('cicon').textContent = catObj.categoryIcon;
+  document.getElementById('cname').textContent = item.name;
+  document.getElementById('csub').textContent  = item.subtitle;
+  document.getElementById('cdesc').textContent = item.desc;
+
+  var stEl = document.getElementById('cstyles');
+  var szEl = document.getElementById('csizes');
+  stEl.innerHTML = ''; szEl.innerHTML = ''; szEl.style.display = 'none';
+  selStyle = ''; selSize = '';
+
+  var keys = Object.keys(item.prices);
+  if (keys.length > 1 && keys[0] !== 'default') {
+    var isSz = keys.some(function(k){return['Regular','Large','Hot','Iced','Single','Double'].indexOf(k)>=0;});
+    if (isSz) {
+      szEl.style.display='flex'; selSize=keys[0];
+      keys.forEach(function(k){
+        var b=document.createElement('button'); b.className='csize'+(k===selSize?' on':'');
+        b.textContent=k+' · $'+item.prices[k].toFixed(2);
+        b.onclick=function(){selSize=k;szEl.querySelectorAll('.csize').forEach(function(x){x.classList.remove('on');});b.classList.add('on');updP(item);};
+        szEl.appendChild(b);
+      });
+    } else {
+      selStyle=keys[0];
+      keys.forEach(function(k){
+        var b=document.createElement('button'); b.className='csty'+(k===selStyle?' on':'');
+        b.textContent=k;
+        b.onclick=function(){selStyle=k;stEl.querySelectorAll('.csty').forEach(function(x){x.classList.remove('on');});b.classList.add('on');updP(item);};
+        stEl.appendChild(b);
+      });
+    }
+  } else { selStyle='default'; }
+
+  updP(item);
+  document.getElementById('card').classList.add('show');
+  loadModel(item);
+}
+
+function updP(item) {
+  var keys=Object.keys(item.prices), p=item.defaultPrice;
+  if(selSize&&item.prices[selSize]) p=item.prices[selSize];
+  else if(selStyle&&item.prices[selStyle]) p=item.prices[selStyle];
+  else p=item.prices[keys[0]];
+  document.getElementById('cprice').textContent='$'+p.toFixed(2);
+}
+
+function hideCard() {
+  document.getElementById('card').classList.remove('show');
+  document.getElementById('ar-btn-wrap').classList.remove('show');
+}
+
+function orderNow() {
+  var catObj=FUDA_MENU[selCat], item=catObj.items[selIdx];
+  var keys=Object.keys(item.prices), p=item.defaultPrice;
+  if(selSize&&item.prices[selSize]) p=item.prices[selSize];
+  else if(selStyle&&item.prices[selStyle]) p=item.prices[selStyle];
+  else p=item.prices[keys[0]];
+  var suffix=(selStyle&&selStyle!=='default')?' ('+selStyle+')':selSize?' ('+selSize+')':'';
+  var cid=item.id+suffix.replace(/\W/g,'-');
+  var cart=JSON.parse(localStorage.getItem('fuda_cart')||'[]');
+  var ex=cart.find(function(c){return c.cartId===cid;});
+  if(ex) ex.qty++;
+  else cart.push({cartId:cid,id:item.id,name:item.name+suffix,emoji:catObj.categoryIcon,price:p,qty:1,img:item.img});
+  localStorage.setItem('fuda_cart',JSON.stringify(cart));
+  toast('🛒 Added to cart!'); hideCard();
+  setTimeout(function(){location.href='cart.html';}, 700);
+}
+
+// ── CHIP SELECTOR
+function setCat(cat, el) {
+  selCat=cat; selIdx=0;
+  document.querySelectorAll('.bcat').forEach(function(b){b.classList.remove('on');});
+  el.classList.add('on');
+  renderChips();
+}
+
+function renderChips() {
+  var catObj = FUDA_MENU[selCat];
+  if (!catObj) return;
+  document.getElementById('bscroll').innerHTML = catObj.items.map(function(item, i) {
+    var p = Math.min.apply(null, Object.values(item.prices));
+    return '<div class="chip'+(i===selIdx?' on':'')+'" onclick="pickItem('+i+')">'
+      +'<img class="chip-img" src="'+item.img+'" alt="'+item.name+'" onerror="this.style.background=\'#1a1a1a\'">'
+      +'<div class="chip-info"><div class="chip-name">'+item.name+'</div>'
+      +'<div class="chip-price">from $'+p.toFixed(2)+'</div></div></div>';
+  }).join('');
+}
+
+function pickItem(idx) {
+  selIdx = idx;
+  document.querySelectorAll('.chip').forEach(function(el,i){el.classList.toggle('on',i===idx);});
+  var item = FUDA_MENU[selCat].items[idx];
+  var catObj = FUDA_MENU[selCat];
+  showCard(item, catObj);
+}
+
+// ── TOAST
+var TT;
+function toast(msg) {
+  var el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(TT); TT=setTimeout(function(){el.classList.remove('show');}, 3500);
+}
+
+// ── INIT
+renderChips();
+// Auto-load first item
+pickItem(0);
+</script>
+</body>
+</html>

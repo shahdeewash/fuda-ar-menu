@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>FÜDA – Global Street Bites | AR Menu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--or:#FF6B2C;--yl:#FFD23F;--dk:#0A0A0A;--sf:#131313;--bd:#1E1E1E;--mt:#555;--lt:#F5F5F0;--FD:'Bebas Neue',cursive;--FB:'DM Sans',sans-serif;--FM:'Space Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--dk);color:var(--lt);font-family:var(--FB);min-height:100vh;overflow-x:hidden}
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,107,44,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,44,.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none}
+.header{display:flex;justify-content:space-between;align-items:center;padding:24px 20px 0;position:relative;z-index:10}
+.logo{font-family:var(--FD);font-size:44px;letter-spacing:5px;line-height:1}.logo b{color:var(--or)}
+.logo-sub{font-family:var(--FM);font-size:8px;letter-spacing:3px;color:var(--mt);margin-top:2px}
+.live-badge{background:var(--sf);border:1px solid var(--bd);border-radius:100px;padding:6px 14px;font-family:var(--FM);font-size:9px;letter-spacing:1px;color:var(--or);display:flex;align-items:center;gap:6px}
+.live-dot{width:6px;height:6px;background:var(--or);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero{display:flex;flex-direction:column;align-items:center;padding:32px 20px 20px;text-align:center;position:relative;z-index:10}
+.hero-tag{font-family:var(--FM);font-size:10px;letter-spacing:4px;color:var(--or);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.hero-tag::before,.hero-tag::after{content:'';width:24px;height:1px;background:var(--or);opacity:.5}
+h1{font-family:var(--FD);font-size:clamp(58px,16vw,88px);line-height:.88;letter-spacing:2px;margin-bottom:12px}
+h1 .or{color:var(--or);display:block}
+h1 .yl{color:var(--yl)}
+.hero-sub{font-size:14px;font-weight:300;color:rgba(245,245,240,.5);margin-bottom:32px;max-width:270px;line-height:1.65}
+.ar-preview{width:100%;max-width:360px;background:var(--sf);border:1px solid var(--bd);border-radius:24px;overflow:hidden;margin-bottom:24px}
+.ar-screen{height:210px;position:relative;overflow:hidden}
+.ar-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5;transition:opacity 1s}
+.ar-img.hidden{opacity:0}
+.ar-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(10,8,4,.65))}
+.ar-corner{position:absolute;width:22px;height:22px;border-color:var(--or);border-style:solid;opacity:.8}
+.ar-corner.tl{top:14px;left:14px;border-width:2px 0 0 2px}
+.ar-corner.tr{top:14px;right:14px;border-width:2px 2px 0 0}
+.ar-corner.bl{bottom:14px;left:14px;border-width:0 0 2px 2px}
+.ar-corner.br{bottom:14px;right:14px;border-width:0 2px 2px 0}
+.ar-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70px;height:70px;border:1.5px solid rgba(255,107,44,.5);border-radius:50%;animation:ring 2.2s ease-in-out infinite}
+@keyframes ring{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1}50%{transform:translate(-50%,-50%) scale(1.35);opacity:.2}}
+.ar-label{position:absolute;bottom:14px;left:14px;right:14px;font-family:var(--FD);font-size:18px;letter-spacing:2px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+.ar-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--bd)}
+.ar-bar-lbl{font-family:var(--FM);font-size:9px;color:var(--mt);letter-spacing:1px}
+.ar-bar-lbl strong{display:block;font-family:var(--FB);font-size:13px;color:var(--lt);font-weight:500;margin-top:2px;letter-spacing:0}
+.ar-bar-icon{width:34px;height:34px;background:var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px}
+.cta-group{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:360px}
+.btn-ar{width:100%;background:var(--or);color:#fff;border:none;border-radius:16px;padding:20px;font-family:var(--FD);font-size:28px;letter-spacing:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 0 40px rgba(255,107,44,.3);text-decoration:none;position:relative;overflow:hidden;transition:transform .15s}
+.btn-ar::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.14),transparent 50%)}
+.btn-ar:active{transform:scale(.97)}
+.btn-icon{font-size:22px;animation:bounce 2.2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.btn-sec{background:transparent;color:var(--mt);border:none;font-family:var(--FM);font-size:10px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;gap:8px;padding:8px 16px}
+.section{position:relative;z-index:10}
+.sec-title{font-family:var(--FD);font-size:32px;letter-spacing:2px;padding:36px 20px 0}
+.sec-title span{color:var(--or)}
+.cat-tabs{display:flex;gap:8px;padding:16px 20px;overflow-x:auto;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{flex-shrink:0;background:var(--sf);border:1px solid var(--bd);border-radius:100px;padding:9px 16px;font-family:var(--FM);font-size:9px;letter-spacing:2px;color:var(--mt);cursor:pointer;transition:all .2s;text-transform:uppercase}
+.cat-tab.on{background:var(--or);border-color:var(--or);color:#fff;box-shadow:0 0 16px rgba(255,107,44,.35)}
+.menu-scroll{display:flex;gap:12px;padding:4px 20px 28px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory}
+.menu-scroll::-webkit-scrollbar{display:none}
+.menu-card{min-width:190px;max-width:190px;background:var(--sf);border:1px solid var(--bd);border-radius:20px;overflow:hidden;scroll-snap-align:start;flex-shrink:0;cursor:pointer;transition:all .2s;text-decoration:none;display:flex;flex-direction:column}
+.menu-card:active{transform:scale(.96)}
+.menu-card:hover{border-color:rgba(255,107,44,.4)}
+.card-img{height:130px;position:relative;overflow:hidden;background:#0d0a06}
+.card-img img{width:100%;height:100%;object-fit:cover;opacity:.9;transition:opacity .3s,transform .4s}
+.menu-card:hover .card-img img{opacity:1;transform:scale(1.06)}
+.card-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(10,8,4,.7) 100%)}
+.card-ar{position:absolute;top:8px;left:8px;background:rgba(10,8,4,.75);border:1px solid rgba(255,107,44,.4);border-radius:100px;padding:3px 8px;font-family:var(--FM);font-size:8px;letter-spacing:1px;color:var(--or)}
+.card-body{padding:12px 13px 14px;flex:1;display:flex;flex-direction:column;gap:4px}
+.card-name{font-weight:600;font-size:13px;line-height:1.25}
+.card-sub{font-size:11px;color:var(--mt);line-height:1.3}
+.card-tags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.ctag{font-family:var(--FM);font-size:7px;letter-spacing:1px;border-radius:100px;padding:2px 6px;border:1px solid}
+.ctag.or{color:var(--or);border-color:rgba(255,107,44,.25)}
+.ctag.gr{color:#4CAF50;border-color:rgba(76,175,80,.3)}
+.ctag.yl{color:var(--yl);border-color:rgba(255,210,63,.3)}
+.card-price{font-family:var(--FM);font-size:13px;color:var(--or);font-weight:700;margin-top:auto;padding-top:6px}
+.steps{padding:0 20px 36px;position:relative;z-index:10}
+.steps-lbl{font-family:var(--FM);font-size:9px;letter-spacing:4px;color:var(--mt);text-transform:uppercase;margin-bottom:14px;text-align:center}
+.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:380px;margin:0 auto}
+.step{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:16px 14px}
+.si{font-size:24px;margin-bottom:6px}.sn{font-size:13px;font-weight:600;margin-bottom:3px}.sd{font-size:11px;color:var(--mt);line-height:1.45}
+.info-strip{margin:0 20px 40px;background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:20px;position:relative;z-index:10}
+.info-strip h3{font-family:var(--FD);font-size:20px;letter-spacing:1px;margin-bottom:12px}
+.info-strip h3 span{color:var(--or)}
+.info-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.info-row:last-child{border:none}
+.info-val{margin-left:auto;font-family:var(--FM);font-size:11px;color:var(--lt)}
+footer{border-top:1px solid var(--bd);padding:20px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:10}
+.footer-brand{font-family:var(--FD);font-size:20px;letter-spacing:3px;color:var(--mt)}
+.footer-links{display:flex;gap:16px}
+.footer-links a{font-family:var(--FM);font-size:10px;letter-spacing:1px;color:var(--mt);text-decoration:none;text-transform:uppercase}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(10px);z-index:900;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.active{opacity:1;pointer-events:all}
+.modal{width:100%;background:var(--sf);border-radius:28px 28px 0 0;border-top:1px solid var(--bd);padding:28px 24px 52px;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,.72,0,1);position:relative;max-height:90vh;overflow-y:auto}
+.modal-overlay.active .modal{transform:translateY(0)}
+.mhandle{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 20px}
+.mtitle{font-family:var(--FD);font-size:28px;letter-spacing:2px;margin-bottom:4px}
+.mtitle span{color:var(--or)}
+.msub{font-size:12px;color:var(--mt);margin-bottom:18px}
+.mclose{position:absolute;top:20px;right:20px;width:32px;height:32px;background:var(--dk);border:1px solid var(--bd);border-radius:50%;color:var(--lt);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.compat{background:rgba(255,210,63,.07);border:1px solid rgba(255,210,63,.2);border-radius:10px;padding:10px 14px;font-size:11px;color:var(--yl);line-height:1.5;margin-bottom:18px}
+.isteps{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.istep{display:flex;align-items:flex-start;gap:14px}
+.inum{width:32px;height:32px;background:var(--dk);border:1px solid rgba(255,107,44,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--FM);font-size:11px;color:var(--or);flex-shrink:0}
+.itext h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.itext p{font-size:12px;color:var(--mt);line-height:1.5}
+.btn-launch{width:100%;background:var(--or);border:none;border-radius:14px;padding:18px;font-family:var(--FD);font-size:24px;letter-spacing:3px;color:#fff;cursor:pointer;box-shadow:0 0 24px rgba(255,107,44,.28);text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<header class="header">
+  <div><div class="logo">F<b>Ü</b>DA</div><div class="logo-sub">Global Street Bites</div></div>
+  <div class="live-badge"><div class="live-dot"></div>AR MENU</div>
+</header>
+<section class="hero">
+  <div class="hero-tag">WebAR Experience</div>
+  <h1>SEE YOUR<br><span class="or">FOOD</span> IN <span class="yl">3D</span></h1>
+  <p class="hero-sub">Momos, Kebabs & Bubble Tea — floating live on your table before you order.</p>
+  <div class="ar-preview">
+    <div class="ar-screen">
+      <img class="ar-img" id="img0" src="images/chicken-momo-6pcs.jpg" alt="">
+      <img class="ar-img hidden" id="img1" src="images/mixed-grill-kebab.jpg" alt="">
+      <img class="ar-img hidden" id="img2" src="images/salted-caramel-machhiato-boba.jpg" alt="">
+      <img class="ar-img hidden" id="img3" src="images/chicken-shish-wrap.jpg" alt="">
+      <div class="ar-overlay"></div>
+      <div class="ar-corner tl"></div><div class="ar-corner tr"></div>
+      <div class="ar-corner bl"></div><div class="ar-corner br"></div>
+      <div class="ar-ring"></div>
+      <div class="ar-label" id="ar-label">Chicken Momo · $12.90</div>
+    </div>
+    <div class="ar-bar">
+      <div class="ar-bar-lbl">SURFACE DETECTED<strong>Tap to place in AR</strong></div>
+      <div class="ar-bar-icon">📷</div>
+    </div>
+  </div>
+  <div class="cta-group">
+    <a href="ar-menu.html" class="btn-ar"><span class="btn-icon">📷</span>OPEN AR MENU</a>
+    <button class="btn-sec" onclick="document.getElementById('modal').classList.add('active')">ℹ How does AR work?</button>
+  </div>
+</section>
+<div class="section">
+  <div class="sec-title">OUR <span>MENU</span></div>
+  <div class="cat-tabs">
+    <div class="cat-tab on" onclick="filterCat('all',this)">🌏 All</div>
+    <div class="cat-tab" onclick="filterCat('momos',this)">🥟 Dumplings</div>
+    <div class="cat-tab" onclick="filterCat('kebabs',this)">🥙 Kebabs</div>
+    <div class="cat-tab" onclick="filterCat('drinks',this)">🧋 Drinks</div>
+  </div>
+  <div class="menu-scroll" id="menu-scroll"></div>
+</div>
+<section class="steps">
+  <div class="steps-lbl">How AR Menu Works</div>
+  <div class="steps-grid">
+    <div class="step"><div class="si">📷</div><div class="sn">Allow Camera</div><div class="sd">Grant camera access when prompted</div></div>
+    <div class="step"><div class="si">🔍</div><div class="sn">Scan Table</div><div class="sd">Point at table to detect flat surface</div></div>
+    <div class="step"><div class="si">👆</div><div class="sn">Place Food</div><div class="sd">Tap any dish to place 3D model</div></div>
+    <div class="step"><div class="si">🛒</div><div class="sn">Order</div><div class="sd">Tap Order Now to add to cart</div></div>
+  </div>
+</section>
+<div class="info-strip">
+  <h3>VISIT <span>FÜDA</span></h3>
+  <div class="info-row"><span>📍</span><span style="color:var(--mt);font-size:12px">Location</span><span class="info-val">9 Searcy St, Darwin CBD</span></div>
+  <div class="info-row"><span>📞</span><span style="color:var(--mt);font-size:12px">Phone</span><span class="info-val">0451 131 027</span></div>
+  <div class="info-row"><span>🥟</span><span style="color:var(--mt);font-size:12px">Cuisine</span><span class="info-val">Nepalese · Turkish · Boba</span></div>
+  <div class="info-row"><span>✅</span><span style="color:var(--mt);font-size:12px">Halal</span><span class="info-val">100% Certified</span></div>
+</div>
+<footer>
+  <div class="footer-brand">FÜDA</div>
+  <div class="footer-links">
+    <a href="ar-menu.html">AR Menu</a>
+    <a href="cart.html">Order</a>
+    <a href="meshy-generator.html">3D Gen</a>
+    <a href="admin.html">Admin</a>
+  </div>
+</footer>
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="mhandle"></div>
+    <button class="mclose" onclick="document.getElementById('modal').classList.remove('active')">✕</button>
+    <div class="mtitle">FÜDA <span>AR</span></div>
+    <p class="msub">Augmented Reality menu — no app needed</p>
+    <div class="compat">⚡ Works on Safari (iPhone iOS 12+) and Chrome (Android 79+). No download required.</div>
+    <div class="isteps">
+      <div class="istep"><div class="inum">01</div><div class="itext"><h4>Allow Camera</h4><p>Tap "Allow" when the browser asks for camera permission.</p></div></div>
+      <div class="istep"><div class="inum">02</div><div class="itext"><h4>Scan the Table</h4><p>Slowly pan your camera across the table until detected.</p></div></div>
+      <div class="istep"><div class="inum">03</div><div class="itext"><h4>Choose & Place</h4><p>Pick a dish and tap to place a 3D model on your table.</p></div></div>
+      <div class="istep"><div class="inum">04</div><div class="itext"><h4>Rotate & Order</h4><p>Drag to rotate, pinch to scale. Tap Order Now when ready.</p></div></div>
+    </div>
+    <a href="ar-menu.html" class="btn-launch">📷 LAUNCH AR MENU</a>
+  </div>
+</div>
+<script src="menu-data.js"></script>
+<script>
+const PREV=[{img:0,lbl:'Chicken Momo · $12.90'},{img:1,lbl:'Mixed Grill · $28.99'},{img:2,lbl:'Salted Caramel Boba · $7.90'},{img:3,lbl:'Chicken Shish Wrap · $18.99'}];
+let pi=0;
+setInterval(()=>{
+  document.getElementById('img'+pi).classList.add('hidden');
+  pi=(pi+1)%PREV.length;
+  document.getElementById('img'+pi).classList.remove('hidden');
+  document.getElementById('ar-label').textContent=PREV[pi].lbl;
+},3000);
+function tc(t){return['Vegan','🌱','🌿','Vegetarian'].includes(t)?'gr':['Bestseller','⭐','👑','Signature'].includes(t)?'yl':'or';}
+function fmtP(item){const v=Object.values(item.prices);const m=Math.min(...v);return v.length===1?'$'+m.toFixed(2):'from $'+m.toFixed(2);}
+function renderMenu(cat){
+  const s=document.getElementById('menu-scroll');
+  const cats=cat==='all'?Object.values(FUDA_MENU):[FUDA_MENU[cat]];
+  s.innerHTML=cats.map(c=>c.items.map(item=>`<a href="ar-menu.html?item=${item.id}" class="menu-card">
+    <div class="card-img"><img src="${item.img}" alt="${item.name}" loading="lazy" onerror="this.style.opacity='.1'">
+    <div class="card-overlay"></div><div class="card-ar">📷 AR</div></div>
+    <div class="card-body"><div class="card-name">${item.name}</div><div class="card-sub">${item.subtitle}</div>
+    <div class="card-tags">${item.tags.slice(0,2).map(t=>`<span class="ctag ${tc(t)}">${t}</span>`).join('')}</div>
+    <div class="card-price">${fmtP(item)}</div></div></a>`).join('')).join('');
+}
+function filterCat(cat,el){
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');renderMenu(cat);
+}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('active');});
+renderMenu('all');
+</script>
+</body>
+</html>

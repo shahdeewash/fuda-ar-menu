@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000">
+<title>FÜDA – 3D Model Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--or:#FF6B2C;--yl:#FFD23F;--gr:#2ECC71;--rd:#E8263A;--dk:#0A0A0A;--sf:#131313;--sf2:#1A1A1A;--bd:#222;--mt:#666;--lt:#F5F5F0;--FD:'Bebas Neue',cursive;--FB:'DM Sans',sans-serif;--FM:'Space Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--dk);color:var(--lt);font-family:var(--FB);min-height:100vh}
+.header{padding:28px 24px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.logo{font-family:var(--FD);font-size:42px;letter-spacing:4px}.logo b{color:var(--or)}
+.logo-sub{font-family:var(--FM);font-size:9px;letter-spacing:3px;color:var(--mt);margin-top:2px}
+.back{font-family:var(--FM);font-size:10px;letter-spacing:2px;color:var(--mt);text-decoration:none;text-transform:uppercase;margin-top:10px;display:block}
+.page-title{padding:24px 24px 8px}
+.page-title h1{font-family:var(--FD);font-size:44px;letter-spacing:2px;line-height:1}
+.page-title h1 span{color:var(--or)}
+.page-title p{font-size:13px;color:var(--mt);margin-top:6px;line-height:1.6}
+
+/* OPTION CARDS */
+.option-card{margin:0 24px 16px;background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:22px;position:relative}
+.option-card h3{font-family:var(--FD);font-size:22px;letter-spacing:1px;margin-bottom:6px}
+.option-card h3 b{color:var(--or)}
+.option-card p{font-size:12px;color:var(--mt);line-height:1.6;margin-bottom:14px}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:100px;padding:4px 12px;font-family:var(--FM);font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.badge.rec{background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.25);color:var(--gr)}
+.badge.alt{background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.2);color:var(--yl)}
+
+/* STEPS */
+.step-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.step-row{display:flex;gap:12px;align-items:flex-start}
+.step-n{width:28px;height:28px;background:var(--dk);border:1px solid rgba(255,107,44,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--FM);font-size:10px;color:var(--or);flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;line-height:1.5;color:var(--lt)}
+.step-text span{color:var(--mt);font-size:12px}
+code{font-family:var(--FM);font-size:11px;color:var(--or);background:rgba(255,107,44,.08);padding:2px 7px;border-radius:4px}
+
+/* KEY INPUT */
+.inp-row{display:flex;gap:10px;margin-bottom:10px}
+.inp{flex:1;background:var(--dk);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;color:var(--lt);font-family:var(--FM);font-size:12px;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--or)}
+.inp::placeholder{color:var(--mt)}
+.btn{background:var(--or);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-family:var(--FM);font-size:10px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap}
+.btn-sec{background:var(--sf2);border:1px solid var(--bd);border-radius:10px;padding:12px 20px;font-family:var(--FM);font-size:10px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap;color:var(--lt)}
+
+/* STATUS */
+.status{display:inline-flex;align-items:center;gap:7px;border-radius:100px;padding:6px 14px;font-family:var(--FM);font-size:10px;letter-spacing:1px}
+.status.ok{background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.25);color:var(--gr)}
+.status.err{background:rgba(232,38,58,.1);border:1px solid rgba(232,38,58,.25);color:var(--rd)}
+.status.idle{background:rgba(255,255,255,.05);border:1px solid var(--bd);color:var(--mt)}
+.sdot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ITEMS */
+.sec-lbl{font-family:var(--FM);font-size:9px;letter-spacing:4px;color:var(--mt);text-transform:uppercase;padding:8px 24px 12px}
+.items-list{display:flex;flex-direction:column;gap:8px;padding:0 24px}
+.item-row{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:12px;display:flex;align-items:center;gap:12px}
+.item-img{width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.item-meta{flex:1;min-width:0}
+.item-name{font-weight:600;font-size:13px;margin-bottom:2px}
+.item-state{font-family:var(--FM);font-size:9px;margin-top:3px}
+.item-state.ready{color:var(--gr)}.item-state.busy{color:var(--yl)}.item-state.idle{color:var(--mt)}.item-state.err{color:var(--rd)}
+.item-bar{height:2px;background:rgba(255,255,255,.07);border-radius:1px;margin-top:5px;overflow:hidden;display:none}
+.item-bar.show{display:block}
+.item-bar-fill{height:100%;background:var(--or);width:0;transition:width .5s;box-shadow:0 0 6px var(--or)}
+.btn-item{flex-shrink:0;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:7px 12px;font-family:var(--FM);font-size:9px;letter-spacing:1px;color:var(--mt);cursor:pointer;text-transform:uppercase}
+.btn-item:hover{border-color:var(--or);color:var(--or)}
+.btn-item.done{color:var(--gr);border-color:rgba(46,204,113,.2)}
+.btn-item.busy{color:var(--yl);border-color:rgba(255,210,63,.2);cursor:wait}
+
+/* STATS */
+.stats-row{display:flex;gap:10px;padding:0 24px 16px}
+.stat{flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px;text-align:center}
+.stat-v{font-family:var(--FD);font-size:28px;color:var(--or)}
+.stat-l{font-family:var(--FM);font-size:9px;letter-spacing:1px;color:var(--mt);text-transform:uppercase;margin-top:2px}
+
+/* BIG GENERATE */
+.gen-wrap{padding:16px 24px 8px}
+.btn-gen-all{width:100%;background:var(--or);color:#fff;border:none;border-radius:14px;padding:18px;font-family:var(--FD);font-size:26px;letter-spacing:3px;cursor:pointer;box-shadow:0 0 28px rgba(255,107,44,.25);display:flex;align-items:center;justify-content:center;gap:10px}
+.btn-gen-all:disabled{opacity:.45;cursor:not-allowed}
+.gen-note{font-family:var(--FM);font-size:9px;letter-spacing:1px;color:var(--mt);text-align:center;margin-top:8px;line-height:1.6}
+
+/* LOG */
+.log-wrap{margin:8px 24px 40px}
+.log-lbl{font-family:var(--FM);font-size:9px;letter-spacing:3px;color:var(--mt);text-transform:uppercase;margin-bottom:8px}
+.log{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;font-family:var(--FM);font-size:10px;line-height:1.9;max-height:180px;overflow-y:auto;color:var(--mt)}
+.log .ok{color:var(--gr)}.log .err{color:var(--rd)}.log .info{color:var(--yl)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--sf);border:1px solid var(--bd);border-radius:100px;padding:10px 22px;font-family:var(--FM);font-size:11px;color:var(--lt);z-index:99;white-space:nowrap;opacity:0;transition:all .3s}
+.toast.show{opacity:1}
+
+.divider{height:1px;background:var(--bd);margin:0 24px 16px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div><div class="logo">F<b>Ü</b>DA</div><div class="logo-sub">3D Model Generator</div></div>
+  <a href="index.html" class="back">← Home</a>
+</div>
+
+<div class="page-title">
+  <h1>PHOTO → <span>3D MODEL</span></h1>
+  <p>Convert your real FÜDA food photos into AR-ready .glb 3D models using Meshy AI.</p>
+</div>
+
+<!-- SETUP CARD -->
+<div class="option-card">
+  <div class="badge rec">⭐ SETUP — 2 steps</div>
+  <h3>STEP 1: <b>WORKER URL</b></h3>
+  <p>Your Cloudflare Worker URL acts as the API proxy. Paste it below and click SAVE.</p>
+
+  <div class="inp-row">
+    <input class="inp" id="worker-url" placeholder="https://aged-sound-fe50.shahdeewash.workers.dev" type="url">
+    <button class="btn" onclick="saveWorkerUrl()">SAVE</button>
+  </div>
+  <div id="worker-status" class="status idle" style="margin-bottom:16px"><div class="sdot"></div><span>Not configured</span></div>
+
+  <h3 style="margin-bottom:6px">STEP 2: <b>MESHY API KEY</b></h3>
+  <p>Get your free key at <a href="https://meshy.ai" target="_blank" style="color:var(--or)">meshy.ai</a> → Settings → API Keys. Then paste below and click TEST KEY.</p>
+
+  <div class="inp-row">
+    <input class="inp" id="api-key" type="password" placeholder="msy-xxxxxxxxxxxxxxxxxxxxxxxx">
+    <button class="btn" onclick="testKey()">TEST KEY</button>
+  </div>
+  <div id="key-status" class="status idle"><div class="sdot"></div><span>Not tested</span></div>
+</div>
+
+<!-- OPTION B: NETLIFY CLI -->
+<div class="option-card">
+  <div class="badge alt">OPTION B — Netlify CLI</div>
+  <h3>OPTION B: <b>NETLIFY CLI</b></h3>
+  <p>If you have Node.js installed, run 3 commands in your terminal and functions deploy correctly.</p>
+  <div class="step-list">
+    <div class="step-row">
+      <div class="step-n">1</div>
+      <div class="step-text">Install CLI: <code>npm install -g netlify-cli</code></div>
+    </div>
+    <div class="step-row">
+      <div class="step-n">2</div>
+      <div class="step-text">Go to your folder: <code>cd path/to/fuda-complete</code></div>
+    </div>
+    <div class="step-row">
+      <div class="step-n">3</div>
+      <div class="step-text">Deploy: <code>netlify login</code> then <code>netlify deploy --prod</code></div>
+    </div>
+  </div>
+  <p style="color:var(--gr);font-size:11px;font-family:var(--FM)">✅ After CLI deploy, functions work — come back here and use the section below.</p>
+  <div class="inp-row" style="margin-top:12px">
+    <input class="inp" id="netlify-url" placeholder="https://yoursite.netlify.app" type="url">
+    <button class="btn" onclick="saveNetlifyUrl()">SAVE</button>
+  </div>
+  <div id="netlify-status" class="status idle"><div class="sdot"></div><span>Not configured</span></div>
+</div>
+
+
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-v" id="s-credits">—</div><div class="stat-l">Credits</div></div>
+  <div class="stat"><div class="stat-v" id="s-done">0</div><div class="stat-l">Ready</div></div>
+  <div class="stat"><div class="stat-v" id="s-total">22</div><div class="stat-l">Total</div></div>
+</div>
+
+<!-- ITEMS -->
+<div class="sec-lbl">— FOOD ITEMS —</div>
+<div class="items-list" id="items-list"></div>
+
+<div class="gen-wrap">
+  <button class="btn-gen-all" id="btn-all" onclick="generateAll()">🚀 GENERATE ALL MISSING</button>
+  <div class="gen-note">SKIPS ALREADY GENERATED · ~10 CREDITS EACH · ~60–90 SEC PER MODEL</div>
+</div>
+
+<div class="log-wrap">
+  <div class="log-lbl">Activity Log</div>
+  <div class="log" id="log"><span class="info">Configure proxy URL above (Option A or B), then test your API key.</span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="menu-data.js"></script>
+<script>
+const STORAGE = {
+  key:    'fuda_meshy_key',
+  worker: 'fuda_worker_url',
+  models: 'fuda_3d_models'
+};
+
+let apiKey   = localStorage.getItem(STORAGE.key)    || '';
+let proxyUrl = localStorage.getItem(STORAGE.worker)  || '';
+let models   = JSON.parse(localStorage.getItem(STORAGE.models) || '{}');
+let running  = false;
+
+// ── FOOD ITEMS ─────────────────────────────────────────────────
+const ITEMS = [
+  {id:'chicken-momo',  name:'Chicken Momo',       img:'images/chicken-momo-6pcs.jpg'},
+  {id:'paneer-momo',   name:'Paneer Momo',         img:'images/paneer-momo-6pcs.jpg'},
+  {id:'buff-momo',     name:'Buff Momo',           img:'images/buff-momo.jpg'},
+  {id:'vegan-momo',    name:'Vegan Momo',          img:'images/vegan-momo-6-pcs.jpg'},
+  {id:'momo-platter',  name:'Momo Platter',        img:'images/paneer-momo-platter.jpg'},
+  {id:'choco-momo',    name:'Chocolate Momo',      img:'images/chocolate-momo-2pcs.jpg'},
+  {id:'samosa',        name:'Samosa',              img:'images/samosa.jpg'},
+  {id:'hummus',        name:'Hummus + Pita',       img:'images/hummus-with-pita-bread.jpg'},
+  {id:'trio-dip',      name:'Trio of Dips',        img:'images/trio-of-dip.jpg'},
+  {id:'spring-roll',   name:'Spring Roll',         img:'images/chicken-spring-roll.jpg'},
+  {id:'snack-pack',    name:'Snack Pack',          img:'images/snack-pack.jpg'},
+  {id:'chicken-wrap',  name:'Chicken Shish Wrap',  img:'images/chicken-shish-wrap.jpg'},
+  {id:'kofta-wrap',    name:'Kofta Wrap',          img:'images/kofta-wrap.jpg'},
+  {id:'chicken-kebab', name:'Chicken Shish',       img:'images/chicken-shish-kebab.jpg'},
+  {id:'lamb-kebab',    name:'Lamb Shish',          img:'images/lamb-shish-kebab.jpg'},
+  {id:'mixed-grill',   name:'Mixed Grill',         img:'images/mixed-grill-kebab.jpg'},
+  {id:'iskender',      name:'Iskender Kebab',      img:'images/iskender-kebab.jpg'},
+  {id:'med-salad',     name:'Mediterranean Salad', img:'images/mediterranean-salad.jpg'},
+  {id:'boba-coffee',   name:'Boba Coffee',         img:'images/salted-caramel-machhiato-boba.jpg'},
+  {id:'bubble-tea',    name:'Bubble Tea',          img:'images/lychee-rose-oolong.jpg'},
+  {id:'coffee-cup',    name:'Coffee',              img:'images/latte.jpg'},
+  {id:'can',           name:'Soft Drink Can',      img:'images/coca-cola-zero-sugar-can.jpg'},
+];
+
+// ── CLOUDFLARE WORKER CODE ─────────────────────────────────────
+const WORKER_CODE = `// Cloudflare Worker — paste this at workers.cloudflare.com
+const MESHY = 'https://api.meshy.ai/openapi/v1';
+
+export default {
+  async fetch(request) {
+    const cors = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Content-Type': 'application/json'
+    };
+
+    if (request.method === 'OPTIONS') return new Response('', {headers: cors});
+    if (request.method !== 'POST') return new Response(JSON.stringify({error:'POST only'}), {status:405, headers:cors});
+
+    let body;
+    try { body = await request.json(); } 
+    catch(e) { return new Response(JSON.stringify({error:'Bad JSON'}), {status:400, headers:cors}); }
+
+    const {action, apiKey, imageData, taskId} = body;
+    if (!apiKey) return new Response(JSON.stringify({error:'No API key'}), {status:400, headers:cors});
+
+    const auth = {'Authorization':'Bearer '+apiKey, 'Content-Type':'application/json'};
+
+    try {
+      if (action === 'credits') {
+        const r = await fetch(MESHY+'/credits', {headers:auth});
+        const d = await r.json();
+        return new Response(JSON.stringify(d), {status:r.status, headers:cors});
+      }
+      if (action === 'create') {
+        const r = await fetch(MESHY+'/image-to-3d', {
+          method:'POST', headers:auth,
+          body: JSON.stringify({image_url:imageData, enable_pbr:true, should_remesh:true, should_texture:true, ai_model:'meshy-4', target_polycount:30000})
+        });
+        const d = await r.json();
+        if (!r.ok) return new Response(JSON.stringify({error:d.message||'Create failed'}), {status:r.status, headers:cors});
+        return new Response(JSON.stringify(d.result), {headers:cors});
+      }
+      if (action === 'status') {
+        const r = await fetch(MESHY+'/image-to-3d/'+taskId, {headers:auth});
+        const d = await r.json();
+        return new Response(JSON.stringify(d), {status:r.status, headers:cors});
+      }
+      return new Response(JSON.stringify({error:'Unknown action'}), {status:400, headers:cors});
+    } catch(e) {
+      return new Response(JSON.stringify({error:e.message}), {status:500, headers:cors});
+    }
+  }
+};`;
+
+// ── COPY WORKER CODE ───────────────────────────────────────────
+function copyWorkerCode() {
+  navigator.clipboard.writeText(WORKER_CODE).then(() => {
+    toast('📋 Worker code copied! Paste it at workers.cloudflare.com');
+    log('<span class="ok">📋 Worker code copied to clipboard</span>');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = WORKER_CODE;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('📋 Worker code copied!');
+  });
+}
+
+// ── SAVE PROXY URLS ────────────────────────────────────────────
+function saveWorkerUrl() {
+  let url = document.getElementById('worker-url').value.trim().replace(/\/$/, '');
+  if (!url) { toast('⚠️ Enter your Worker URL'); return; }
+  // Auto-add https:// if missing
+  if (!url.startsWith('http')) url = 'https://' + url;
+  document.getElementById('worker-url').value = url;
+  proxyUrl = url;
+  localStorage.setItem(STORAGE.worker, url);
+  log('<span class="info">Worker URL saved: ' + url + '</span>');
+  testConnection();
+}
+
+function saveNetlifyUrl() {
+  const url = document.getElementById('netlify-url').value.trim().replace(/\/$/, '');
+  if (!url.startsWith('http')) { toast('⚠️ Enter a valid URL'); return; }
+  // Netlify functions path
+  proxyUrl = url + '/.netlify/functions/meshy-proxy';
+  localStorage.setItem(STORAGE.worker, proxyUrl);
+  testConnection();
+}
+
+async function testConnection() {
+  const statusEl = document.getElementById('worker-status');
+  setStatus(statusEl, 'idle', 'Testing connection...');
+  try {
+    const r = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'credits', apiKey: 'msy-test-ping'})
+    });
+    // Any response = proxy is reachable
+    setStatus(statusEl, 'ok', '✅ Proxy reachable — now test your API key below');
+    toast('✅ Proxy connected!');
+    log('<span class="ok">✅ Proxy URL works: ' + proxyUrl + '</span>');
+  } catch(e) {
+    setStatus(statusEl, 'err', '❌ Cannot reach proxy — check URL and try again');
+    toast('❌ Cannot reach proxy: ' + e.message);
+    log('<span class="err">❌ Proxy error: ' + e.message + '</span>');
+  }
+}
+
+// ── TEST API KEY ───────────────────────────────────────────────
+async function testKey() {
+  const k = document.getElementById('api-key').value.trim();
+  if (!k) { setKeyStatus('err', 'Enter your Meshy API key first'); return; }
+  // Accept msy- or msy_ or any msy prefix
+  if (!k.startsWith('msy')) { setKeyStatus('err', 'Key does not look valid — should start with msy'); return; }
+
+  // Auto-save key regardless of proxy status
+  apiKey = k;
+  localStorage.setItem(STORAGE.key, k);
+
+  // If no proxy URL saved yet, prompt but still save key
+  if (!proxyUrl) {
+    setKeyStatus('err', '⚠️ Key saved. Now enter your Cloudflare Worker URL above and click SAVE first');
+    log('<span class="info">API key saved. Enter Worker URL above and click SAVE, then TEST KEY again.</span>');
+    toast('⚠️ Enter Worker URL first, then TEST KEY');
+    return;
+  }
+
+  setKeyStatus('idle', 'Testing...');
+  log('<span class="info">Testing API key via proxy: ' + proxyUrl + '</span>');
+
+  try {
+    const r = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'credits', apiKey: k})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    const bal = d.data ? Math.floor(d.data.balance) : '?';
+    document.getElementById('s-credits').textContent = bal;
+    setKeyStatus('ok', '✅ Valid key — ' + bal + ' credits available');
+    log('<span class="ok">✅ API key authenticated! Credits: ' + bal + '</span>');
+    toast('✅ API key works! ' + bal + ' credits');
+  } catch(e) {
+    setKeyStatus('err', '❌ ' + e.message);
+    log('<span class="err">❌ Key test failed: ' + e.message + '</span>');
+    toast('❌ ' + e.message);
+  }
+}
+
+// ── GENERATE ONE ───────────────────────────────────────────────
+async function genOne(id) {
+  if (!apiKey) { toast('⚠️ Test API key first'); return; }
+  if (!proxyUrl) { toast('⚠️ Configure proxy URL first'); return; }
+  if (models[id]) { toast('✅ Already generated'); return; }
+
+  const item = ITEMS.find(i => i.id === id);
+  setState(id, 'busy', '⏳ Loading image...');
+  setBtn(id, 'busy', 'WORKING');
+  setBar(id, 10);
+  log('<span class="info">▶ Starting: ' + item.name + '</span>');
+
+  try {
+    const b64 = await toBase64(item.img);
+    setState(id, 'busy', '⏳ Sending to Meshy AI...');
+    setBar(id, 20);
+
+    const taskId = await callProxy({action: 'create', apiKey, imageData: b64});
+    setState(id, 'busy', '⏳ Generating 3D model...');
+    setBar(id, 30);
+    log('<span class="info">  Task: ' + taskId + '</span>');
+
+    const glbUrl = await pollTask(taskId, id);
+    models[id] = glbUrl;
+    localStorage.setItem(STORAGE.models, JSON.stringify(models));
+
+    setState(id, 'ready', '✅ 3D model ready!');
+    setBtn(id, 'done', '✓ DONE');
+    setBar(id, 100);
+    document.getElementById('s-done').textContent = ITEMS.filter(i => !!models[i.id]).length;
+    log('<span class="ok">✅ ' + item.name + ' done!</span>');
+    toast('✅ ' + item.name + ' 3D model ready!');
+    refreshCredits();
+
+  } catch(e) {
+    setState(id, 'err', '❌ ' + e.message);
+    setBtn(id, '', 'RETRY');
+    setBar(id, 0);
+    log('<span class="err">❌ ' + item.name + ': ' + e.message + '</span>');
+    toast('❌ ' + e.message);
+  }
+}
+
+async function generateAll() {
+  if (!apiKey) { toast('⚠️ Test API key first'); return; }
+  if (!proxyUrl) { toast('⚠️ Configure proxy first'); return; }
+  if (running) return;
+  running = true;
+  document.getElementById('btn-all').disabled = true;
+  const missing = ITEMS.filter(i => !models[i.id]);
+  log('<span class="info">Batch: ' + missing.length + ' items to generate</span>');
+  for (const item of missing) {
+    await genOne(item.id);
+    await sleep(2000);
+  }
+  running = false;
+  document.getElementById('btn-all').disabled = false;
+  log('<span class="ok">🎉 All done!</span>');
+  toast('🎉 All 3D models generated!');
+}
+
+async function pollTask(taskId, itemId) {
+  for (let i = 0; i < 120; i++) {
+    await sleep(5000);
+    const task = await callProxy({action: 'status', apiKey, taskId});
+    const pct = task.progress || 0;
+    setBar(itemId, 30 + pct * 0.65);
+    setState(itemId, 'busy', '⏳ ' + pct + '% — ' + task.status);
+    if (task.status === 'SUCCEEDED') {
+      if (!task.model_urls || !task.model_urls.glb) throw new Error('No GLB URL returned');
+      return task.model_urls.glb;
+    }
+    if (task.status === 'FAILED' || task.status === 'EXPIRED') {
+      throw new Error(task.task_error ? task.task_error.message : task.status);
+    }
+  }
+  throw new Error('Timeout — task took too long');
+}
+
+async function callProxy(body) {
+  let r;
+  try {
+    r = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+  } catch(e) {
+    throw new Error('Cannot reach proxy — check URL: ' + proxyUrl);
+  }
+  let d;
+  try { d = await r.json(); } 
+  catch(e) { throw new Error('Proxy returned bad response (status ' + r.status + ')'); }
+  if (d && d.error) throw new Error(d.error);
+  return d;
+}
+
+function toBase64(src) {
+  return new Promise(async (res, rej) => {
+    try {
+      // Use fetch instead of Image() — avoids CORS canvas taint issue
+      // Build absolute URL from current page origin
+      const absUrl = src.startsWith('http') ? src : (window.location.origin + '/' + src.replace(/^\//, ''));
+      const resp = await fetch(absUrl);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + ' for ' + absUrl);
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result;
+        // Resize via canvas
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          let w = img.width, h = img.height, max = 1024;
+          if (w > max || h > max) {
+            if (w > h) { h = Math.round(h*max/w); w = max; }
+            else { w = Math.round(w*max/h); h = max; }
+          }
+          c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          res(c.toDataURL('image/jpeg', 0.88));
+        };
+        img.onerror = () => rej(new Error('Canvas draw failed for ' + src));
+        img.src = dataUrl;
+      };
+      reader.onerror = () => rej(new Error('FileReader failed for ' + src));
+      reader.readAsDataURL(blob);
+    } catch(e) {
+      rej(new Error('Image load failed: ' + e.message));
+    }
+  });
+}
+
+async function refreshCredits() {
+  try {
+    const d = await callProxy({action: 'credits', apiKey});
+    if (d && d.data) document.getElementById('s-credits').textContent = Math.floor(d.data.balance);
+  } catch(e) {}
+}
+
+// ── UI ─────────────────────────────────────────────────────────
+function renderItems() {
+  document.getElementById('items-list').innerHTML = ITEMS.map(item => {
+    const has = !!models[item.id];
+    return `<div class="item-row" id="row-${item.id}">
+      <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.style.opacity='.15'">
+      <div class="item-meta">
+        <div class="item-name">${item.name}</div>
+        <div class="item-state ${has?'ready':'idle'}" id="state-${item.id}">${has?'✅ 3D model ready':'○ Not generated'}</div>
+        <div class="item-bar" id="bar-${item.id}"><div class="item-bar-fill" id="fill-${item.id}"></div></div>
+      </div>
+      <button class="btn-item ${has?'done':''}" id="btn-${item.id}" onclick="genOne('${item.id}')">${has?'✓ DONE':'GEN'}</button>
+    </div>`;
+  }).join('');
+  document.getElementById('s-total').textContent = ITEMS.length;
+  document.getElementById('s-done').textContent = ITEMS.filter(i => !!models[i.id]).length;
+}
+
+function setStatus(el, type, msg) { el.className = 'status ' + type; el.innerHTML = '<div class="sdot"></div><span>' + msg + '</span>'; }
+function setKeyStatus(type, msg) { setStatus(document.getElementById('key-status'), type, msg); }
+function setState(id, cls, txt) { const el = document.getElementById('state-'+id); if(el){el.className='item-state '+cls; el.textContent=txt;} }
+function setBtn(id, cls, txt) { const el = document.getElementById('btn-'+id); if(el){el.className='btn-item '+cls; el.textContent=txt; el.disabled=(cls==='busy');} }
+function setBar(id, pct) { const b=document.getElementById('bar-'+id); const f=document.getElementById('fill-'+id); if(!b||!f)return; b.classList.add('show'); f.style.width=Math.max(0,Math.min(100,pct))+'%'; if(pct>=100)setTimeout(()=>b.classList.remove('show'),2500); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+let TT;
+function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(TT); TT=setTimeout(()=>el.classList.remove('show'),3500); }
+function log(html) { const el=document.getElementById('log'); el.innerHTML+='<div>'+new Date().toLocaleTimeString()+' '+html+'</div>'; el.scrollTop=el.scrollHeight; }
+
+// ── INIT ───────────────────────────────────────────────────────
+function init() {
+  if (apiKey) document.getElementById('api-key').value = apiKey;
+  if (proxyUrl) {
+    if (proxyUrl.includes('workers.dev')) {
+      document.getElementById('worker-url').value = proxyUrl;
+    } else if (proxyUrl.includes('netlify')) {
+      document.getElementById('netlify-url').value = proxyUrl.replace('/.netlify/functions/meshy-proxy','');
+    }
+    setStatus(document.getElementById('worker-status'), 'ok', '✅ Proxy URL saved: ' + proxyUrl);
+  }
+  renderItems();
+}
+
+init();
+</script>
+</body>
+</html>

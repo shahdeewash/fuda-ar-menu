@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FÜDA – QR Code Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --brand-orange: #FF6B2C; --brand-dark: #0A0A0A; --brand-surface: #131313;
+    --brand-border: #1E1E1E; --brand-muted: #666; --brand-light: #F5F5F0;
+    --font-display: 'Bebas Neue', cursive; --font-body: 'DM Sans', sans-serif; --font-mono: 'Space Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--brand-dark); color: var(--brand-light); font-family: var(--font-body); min-height: 100vh; padding: 32px 24px; }
+
+  .page-title { margin-bottom: 32px; }
+  .back { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--brand-muted); text-decoration: none; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  h1 { font-family: var(--font-display); font-size: 52px; letter-spacing: 3px; }
+  h1 span { color: var(--brand-orange); }
+  p { font-size: 13px; color: var(--brand-muted); margin-top: 6px; }
+
+  .control-card { background: var(--brand-surface); border: 1px solid var(--brand-border); border-radius: 20px; padding: 24px; margin-bottom: 28px; }
+  .control-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; color: var(--brand-muted); text-transform: uppercase; margin-bottom: 8px; display: block; }
+  .url-display { font-family: var(--font-mono); font-size: 12px; color: var(--brand-orange); word-break: break-all; line-height: 1.5; }
+  .input { width: 100%; background: var(--brand-dark); border: 1px solid var(--brand-border); border-radius: 10px; padding: 10px 14px; color: var(--brand-light); font-family: var(--font-body); font-size: 14px; outline: none; transition: border-color 0.2s; margin-bottom: 12px; }
+  .input:focus { border-color: var(--brand-orange); }
+  .btn-gen { background: var(--brand-orange); color: #fff; border: none; border-radius: 10px; padding: 12px 24px; font-family: var(--font-display); font-size: 20px; letter-spacing: 2px; cursor: pointer; }
+
+  .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .qr-card { background: var(--brand-surface); border: 1px solid var(--brand-border); border-radius: 20px; padding: 24px; text-align: center; }
+  .qr-inner { background: #fff; border-radius: 12px; padding: 16px; margin: 0 auto 16px; display: inline-block; }
+  .qr-inner canvas, .qr-inner img { display: block; }
+  .qr-label { font-family: var(--font-display); font-size: 22px; letter-spacing: 2px; margin-bottom: 4px; }
+  .qr-label span { color: var(--brand-orange); }
+  .qr-sub { font-size: 11px; color: var(--brand-muted); margin-bottom: 14px; }
+  .btn-dl { background: var(--brand-dark); border: 1px solid var(--brand-border); border-radius: 8px; padding: 8px 16px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; color: var(--brand-muted); cursor: pointer; text-transform: uppercase; width: 100%; transition: all 0.15s; }
+  .btn-dl:hover { border-color: var(--brand-orange); color: var(--brand-orange); }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <a href="index.html" class="back">← Back to FÜDA</a>
+  <h1>QR <span>CODES</span></h1>
+  <p>Generate and print QR codes for each table. Customers scan to open the AR menu.</p>
+</div>
+
+<div class="control-card">
+  <label class="control-label">Base URL (your deployed website)</label>
+  <input class="input" id="base-url" value="https://fuda.com.au/ar-menu.html" placeholder="https://yourdomain.com/ar-menu.html">
+  <label class="control-label">Number of Tables</label>
+  <input class="input" id="num-tables" type="number" value="6" min="1" max="50">
+  <button class="btn-gen" onclick="generateAll()">GENERATE QR CODES</button>
+</div>
+
+<div class="qr-grid" id="qr-grid"></div>
+
+<script>
+function generateAll() {
+  const baseUrl = document.getElementById('base-url').value.trim();
+  const numTables = parseInt(document.getElementById('num-tables').value) || 6;
+  const grid = document.getElementById('qr-grid');
+  grid.innerHTML = '';
+
+  for (let i = 1; i <= numTables; i++) {
+    const url = `${baseUrl}?table=${i}`;
+    const card = document.createElement('div');
+    card.className = 'qr-card';
+
+    const inner = document.createElement('div');
+    inner.className = 'qr-inner';
+    inner.id = `qr-${i}`;
+
+    card.innerHTML = `
+      <div class="qr-label">TABLE <span>${i}</span></div>
+      <div class="qr-sub">Scan to open AR Menu</div>
+    `;
+    card.insertBefore(inner, card.firstChild);
+
+    const dl = document.createElement('button');
+    dl.className = 'btn-dl';
+    dl.textContent = '⬇ DOWNLOAD PNG';
+    dl.onclick = () => downloadQR(i);
+    card.appendChild(dl);
+
+    grid.appendChild(card);
+
+    new QRCode(inner, {
+      text: url,
+      width: 160,
+      height: 160,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+}
+
+function downloadQR(tableNum) {
+  const el = document.querySelector(`#qr-${tableNum} canvas`);
+  if (!el) { alert('QR not ready'); return; }
+  const link = document.createElement('a');
+  link.download = `fuda-table-${tableNum}-qr.png`;
+  link.href = el.toDataURL();
+  link.click();
+}
+
+// Auto-generate on load
+window.onload = generateAll;
+</script>
+</body>
+</html>
